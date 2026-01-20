@@ -43,6 +43,13 @@ NS_ASSUME_NONNULL_END
 - (NSArray<UIView *> *)recursiveSubviewsAtPoint:(CGPoint)pointInView inView:(UIView *)view skipHiddenViews:(BOOL)skipHidden {
     NSMutableArray<UIView *> *subviewsAtPoint = [NSMutableArray array];
     for (UIView *subview in view.subviews) {
+        // Skip _UIFloatingBarContainerView and its subviews to avoid selecting the system overlay
+        // Starting from iOS 26, Apple added a transparent _UIFloatingBarContainerView as a system overlay that covers all app content. This view is used for system features but interferes with UI debugging tools, preventing users from selecting actual app views underneath.
+        // https://stackoverflow.com/questions/79853172/what-is-floatingbarhostingviewfloatingbarcontainer-in-debugger
+        if ([NSStringFromClass([subview class]) isEqualToString:@"_UIFloatingBarContainerView"]) {
+            continue;
+        }
+
         BOOL isHidden = subview.hidden || subview.alpha < 0.01;
         if (skipHidden && isHidden) {
             continue;
